@@ -1,0 +1,60 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Contador de Efectivo Pro</title>
+    <link rel="stylesheet" href="styles.css">
+    <link rel="manifest" href="manifest.json">
+    <meta name="theme-color" content="#00ffcc">
+</head>
+<body>
+
+    <div class="container">
+        <h1>💵 Contador de Efectivo</h1>
+        <p class="subtitle">Pesos Colombianos (COP)</p>
+
+        <div class="card summary-card">
+            <h2>💰 Total en Caja (Efectivo Real)</h2>
+            <h1 id="globalTotalDisplay">$0</h1>
+            <div id="chartContainer">
+                <p>Distribución: Semanal (Verde) vs General (Azul)</p>
+                <div class="bar-bg">
+                    <div id="barGeneral" class="bar-fill-g"></div>
+                    <div id="barWeekly" class="bar-fill-w"></div>
+                </div>
+            </div>
+        </div>
+
+        <div class="card">
+            <h2>Conteo General</h2>
+            <button id="privacyBtn" class="privacy">👁 Ocultar</button>
+            <div class="table-header">
+                <span>Billete</span>
+                <span>Denominación</span>
+                <span>Cantidad</span>
+                <span>Subtotal</span>
+            </div>
+            <div id="generalContainer"></div>
+            <h3 class="total">Total General: <span id="generalTotal">$0</span></h3>
+        </div>
+
+        <div class="card weekly">
+            <h2>Conteo Semanal</h2>
+            <div class="table-header">
+                <span>Billete</span>
+                <span>Denominación</span>
+                <span>Cantidad</span>
+                <span>Subtotal</span>
+            </div>
+            <div id="weeklyContainer"></div>
+            <h3 class="total">Total Semanal: <span id="weeklyTotal">$0</span></h3>
+            <button id="transferBtn">Pasar Semanal al General</button>
+        </div>
+
+        <button id="resetBtn" class="danger">Reiniciar Todo</button>
+    </div>
+
+    <script src="app.js"></script>
+</body>
+</html>
