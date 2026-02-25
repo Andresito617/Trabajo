@@ -9,9 +9,21 @@ body {
     min-height: 100vh;
 }
 
-.container { width: 95%; max-width: 800px; }
-h1 { text-align: center; margin-bottom: 5px; }
-.subtitle { text-align: center; margin-bottom: 20px; opacity: 0.7; }
+.container {
+    width: 95%;
+    max-width: 800px;
+}
+
+h1 {
+    text-align: center;
+    margin-bottom: 5px;
+}
+
+.subtitle {
+    text-align: center;
+    margin-bottom: 20px;
+    opacity: 0.7;
+}
 
 .card {
     background: rgba(255, 255, 255, 0.07);
@@ -20,15 +32,25 @@ h1 { text-align: center; margin-bottom: 5px; }
     margin-bottom: 25px;
     backdrop-filter: blur(12px);
     border: 1px solid rgba(255, 255, 255, 0.1);
+    transition: transform 0.2s ease;
 }
 
-.weekly { border: 1px solid #00ffcc; }
+.card:hover {
+    transform: translateY(-3px);
+}
 
-.summary-card { text-align: center; }
-#globalTotalDisplay { 
-    font-size: 3rem; 
-    color: #00ffcc; 
-    margin: 10px 0; 
+.weekly {
+    border: 1px solid #00ffcc;
+}
+
+.summary-card {
+    text-align: center;
+}
+
+#globalTotalDisplay {
+    font-size: 3rem;
+    color: #00ffcc;
+    margin: 10px 0;
     transition: color 0.5s ease;
 }
 
@@ -37,13 +59,44 @@ h1 { text-align: center; margin-bottom: 5px; }
     50% { text-shadow: 0 0 20px rgba(0, 255, 204, 0.6); }
     100% { text-shadow: 0 0 5px rgba(0, 255, 204, 0.2); }
 }
-.glow-active { animation: glow 2s infinite ease-in-out; }
 
-.bar-bg { width: 100%; background: rgba(0,0,0,0.3); height: 10px; border-radius: 5px; display: flex; overflow: hidden; margin-top: 15px; }
-.bar-fill-g { background: #3a7bd5; transition: width 0.5s ease; }
-.bar-fill-w { background: #00ffcc; transition: width 0.5s ease; }
+.glow-active {
+    animation: glow 2s infinite ease-in-out;
+}
 
-.table-header, .row {
+.privacy {
+    background: #444;
+    color: white;
+    margin-top: 10px;
+}
+
+.hidden-money {
+    filter: blur(8px);
+    transition: filter 0.3s ease;
+}
+
+.bar-bg {
+    width: 100%;
+    background: rgba(0,0,0,0.3);
+    height: 10px;
+    border-radius: 5px;
+    display: flex;
+    overflow: hidden;
+    margin-top: 15px;
+}
+
+.bar-fill-g {
+    background: #3a7bd5;
+    transition: width 0.5s ease;
+}
+
+.bar-fill-w {
+    background: #00ffcc;
+    transition: width 0.5s ease;
+}
+
+.table-header,
+.row {
     display: grid;
     grid-template-columns: 80px 1.2fr 1fr 1.2fr;
     gap: 10px;
@@ -51,9 +104,17 @@ h1 { text-align: center; margin-bottom: 5px; }
     align-items: center;
 }
 
-.table-header { font-weight: bold; border-bottom: 1px solid rgba(255,255,255,0.1); font-size: 0.9rem; }
+.table-header {
+    font-weight: bold;
+    border-bottom: 1px solid rgba(255,255,255,0.1);
+    font-size: 0.9rem;
+}
 
-/* ESTILO DEL BILLETE */
+.total {
+    text-align: right;
+    margin-top: 10px;
+}
+
 .bill-thumb {
     width: 70px;
     height: 35px;
@@ -73,6 +134,12 @@ input {
     background: white;
     font-weight: bold;
     color: #333;
+    transition: box-shadow 0.2s ease;
+}
+
+input:focus {
+    outline: none;
+    box-shadow: 0 0 0 2px #00ffcc;
 }
 
 button {
@@ -86,19 +153,32 @@ button {
     color: #0f2027;
     margin-top: 15px;
     font-size: 1rem;
+    transition: all 0.2s ease;
 }
 
-.privacy {
-    background: #444;
+button:hover {
+    filter: brightness(1.2);
+    transform: translateY(-2px);
+}
+
+button:active {
+    transform: translateY(0);
+}
+
+.danger {
+    background: #ff4d4d;
     color: white;
-    margin-top: 10px;
+    margin-top: 30px;
 }
 
-.hidden-money {
-    filter: blur(8px);
-    transition: filter 0.3s ease;
-}
+@media (max-width: 600px) {
+    .table-header,
+    .row {
+        grid-template-columns: 60px 1fr 1fr 1fr;
+        font-size: 0.8rem;
+    }
 
-.danger { background: #ff4d4d; color: white; margin-top: 30px; }
-button:hover { filter: brightness(1.2); transform: translateY(-2px); }
-button:active { transform: translateY(0); }
+    #globalTotalDisplay {
+        font-size: 2.2rem;
+    }
+}

@@ -4,9 +4,15 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Contador de Efectivo Pro</title>
-    <link rel="stylesheet" href="styles.css">
+
+    <!-- PWA -->
     <link rel="manifest" href="manifest.json">
     <meta name="theme-color" content="#00ffcc">
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+    <link rel="apple-touch-icon" href="icon-192.png">
+
+    <link rel="stylesheet" href="styles.css">
 </head>
 <body>
 
@@ -17,6 +23,9 @@
         <div class="card summary-card">
             <h2>💰 Total en Caja (Efectivo Real)</h2>
             <h1 id="globalTotalDisplay">$0</h1>
+
+            <button id="privacyBtn" class="privacy">👁 Ocultar</button>
+
             <div id="chartContainer">
                 <p>Distribución: Semanal (Verde) vs General (Azul)</p>
                 <div class="bar-bg">
@@ -28,7 +37,6 @@
 
         <div class="card">
             <h2>Conteo General</h2>
-            <button id="privacyBtn" class="privacy">👁 Ocultar</button>
             <div class="table-header">
                 <span>Billete</span>
                 <span>Denominación</span>
