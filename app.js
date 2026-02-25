@@ -1,14 +1,48 @@
 const denominations = [2000, 5000, 10000, 20000, 50000, 100000];
+
 const generalContainer = document.getElementById("generalContainer");
 const weeklyContainer = document.getElementById("weeklyContainer");
 const transferBtn = document.getElementById("transferBtn");
 const resetBtn = document.getElementById("resetBtn");
 const globalDisplay = document.getElementById("globalTotalDisplay");
 const privacyBtn = document.getElementById("privacyBtn");
+const historyContainer = document.getElementById("historyContainer");
 
-let state = { general: {}, weekly: {} };
+const lockScreen = document.getElementById("lockScreen");
+const pinInput = document.getElementById("pinInput");
+const pinBtn = document.getElementById("pinBtn");
+const pinError = document.getElementById("pinError");
+const lockTitle = document.getElementById("lockTitle");
+
+let state = {
+    general: {},
+    weekly: {},
+    history: [],
+    pin: null
+};
+
 let privacyMode = false;
-let saveTimeout;
+
+/* ================= LOAD ================= */
+
+function load() {
+    const data = localStorage.getItem("moneyApp");
+    if (data) state = JSON.parse(data);
+
+    state.general = state.general || {};
+    state.weekly = state.weekly || {};
+    state.history = state.history || [];
+    state.pin = state.pin || null;
+
+    denominations.forEach(d => {
+        state.general[d] = Number(state.general[d]) || 0;
+        state.weekly[d] = Number(state.weekly[d]) || 0;
+    });
+}
+
+function save() {
+    localStorage.setItem("moneyApp", JSON.stringify(state));
+}
 
 function formatCOP(value) {
     return new Intl.NumberFormat("es-CO", {
@@ -18,60 +52,7 @@ function formatCOP(value) {
     }).format(value);
 }
 
-function autoSave() {
-    clearTimeout(saveTimeout);
-    saveTimeout = setTimeout(() => {
-        localStorage.setItem("moneyApp", JSON.stringify(state));
-    }, 250);
-}
-
-function load() {
-    const data = localStorage.getItem("moneyApp");
-    if (data) {
-        state = JSON.parse(data);
-
-        // Asegurar números
-        denominations.forEach(d => {
-            state.general[d] = Number(state.general[d]) || 0;
-            state.weekly[d] = Number(state.weekly[d]) || 0;
-        });
-    }
-}
-
-function updateGlobalSummary() {
-    let totalGeneral = 0;
-    let totalWeekly = 0;
-
-    denominations.forEach(d => {
-        totalGeneral += (state.general[d] || 0) * d;
-        totalWeekly += (state.weekly[d] || 0) * d;
-    });
-
-    const grandTotal = totalGeneral + totalWeekly;
-    globalDisplay.textContent = formatCOP(grandTotal);
-
-    // 🎨 Colores dinámicos
-    globalDisplay.classList.remove("glow-active");
-
-    if (grandTotal > 2000000) {
-        globalDisplay.style.color = "#ff00ff";
-        globalDisplay.classList.add("glow-active");
-    } else if (grandTotal > 500000) {
-        globalDisplay.style.color = "#ffcc00";
-        globalDisplay.classList.add("glow-active");
-    } else {
-        globalDisplay.style.color = "#00ffcc";
-    }
-
-    // 📊 Barras proporcionales
-    const safeTotal = grandTotal || 1;
-
-    document.getElementById("barGeneral").style.width =
-        (totalGeneral / safeTotal) * 100 + "%";
-
-    document.getElementById("barWeekly").style.width =
-        (totalWeekly / safeTotal) * 100 + "%";
-}
+/* ================= CALCULOS ================= */
 
 function calculate(type) {
     let total = 0;
@@ -79,131 +60,144 @@ function calculate(type) {
     denominations.forEach(den => {
         const qty = state[type][den] || 0;
         const subtotal = qty * den;
-
-        const subEl = document.getElementById(`${type}-sub-${den}`);
-        if (subEl) subEl.textContent = formatCOP(subtotal);
-
         total += subtotal;
     });
 
     document.getElementById(`${type}Total`).textContent = formatCOP(total);
-
-    updateGlobalSummary();
+    updateGlobal();
 }
+
+function updateGlobal() {
+    let tg = 0, tw = 0;
+
+    denominations.forEach(d => {
+        tg += (state.general[d] || 0) * d;
+        tw += (state.weekly[d] || 0) * d;
+    });
+
+    globalDisplay.textContent = formatCOP(tg + tw);
+}
+
+/* ================= RENDER ================= */
 
 function render(type, container) {
     container.innerHTML = "";
 
     denominations.forEach(den => {
-        const row = document.createElement("div");
-        row.className = "row";
-
-        const value = state[type][den] || "";
-
-        row.innerHTML = `
-            <img src="img/${den}.jpg"
-                 class="bill-thumb"
-                 alt="${den}"
-                 onerror="this.src='https://via.placeholder.com/70x35?text=${den}'">
-
-            <span>${formatCOP(den)}</span>
-
-            <input type="number"
-                   min="0"
-                   value="${value}"
-                   data-type="${type}"
-                   data-den="${den}"
-                   placeholder="0">
-
-            <span id="${type}-sub-${den}">$0</span>
-        `;
-
-        container.appendChild(row);
-    });
-
-    container.querySelectorAll("input").forEach(input => {
+        const input = document.createElement("input");
+        input.type = "number";
+        input.min = 0;
+        input.value = state[type][den] || "";
 
         input.addEventListener("input", e => {
-            const type = e.target.dataset.type;
-            const den = e.target.dataset.den;
-
-            let val = Number(e.target.value);
-            if (val < 0) val = 0;
-
-            state[type][den] = val;
-
+            state[type][den] = Number(e.target.value) || 0;
             calculate(type);
-            autoSave();
+            save();
         });
 
-        input.addEventListener("focus", e => e.target.select());
+        container.appendChild(document.createTextNode(formatCOP(den) + " "));
+        container.appendChild(input);
+        container.appendChild(document.createElement("br"));
     });
 
     calculate(type);
 }
 
-privacyBtn.addEventListener("click", () => {
+/* ================= HISTORIAL ================= */
 
-    privacyMode = !privacyMode;
+function addToHistory(amount) {
+    const date = new Date().toLocaleDateString("es-CO");
+    state.history.unshift({ date, amount });
+    save();
+    renderHistory();
+}
 
-    const elements = [
-        globalDisplay,
-        document.getElementById("generalTotal"),
-        document.getElementById("weeklyTotal")
-    ];
+function renderHistory() {
+    historyContainer.innerHTML = "";
+    state.history.forEach(item => {
+        const div = document.createElement("div");
+        div.textContent = `${item.date} — ${formatCOP(item.amount)}`;
+        historyContainer.appendChild(div);
+    });
+}
 
-    elements.forEach(el => el.classList.toggle("hidden-money"));
-
-    privacyBtn.textContent = privacyMode ? "🙈 Mostrar" : "👁 Ocultar";
-});
-
-document.addEventListener("keydown", e => {
-    if (e.key === "Enter" && e.target.tagName === "INPUT") {
-        const inputs = Array.from(document.querySelectorAll("input"));
-        const index = inputs.indexOf(e.target);
-        if (index < inputs.length - 1) {
-            inputs[index + 1].focus();
-        }
-    }
-});
+/* ================= TRANSFER ================= */
 
 transferBtn.addEventListener("click", () => {
 
-    if (confirm("¿Pasar Semanal al General?")) {
+    let weeklyTotal = 0;
 
-        denominations.forEach(d => {
-            state.general[d] =
-                (state.general[d] || 0) + (state.weekly[d] || 0);
+    denominations.forEach(d => {
+        weeklyTotal += (state.weekly[d] || 0) * d;
+    });
 
-            state.weekly[d] = 0;
-        });
+    if (weeklyTotal === 0) return;
 
-        autoSave();
-        render("general", generalContainer);
-        render("weekly", weeklyContainer);
-    }
+    denominations.forEach(d => {
+        state.general[d] += state.weekly[d] || 0;
+        state.weekly[d] = 0;
+    });
+
+    addToHistory(weeklyTotal);
+    save();
+    render("general", generalContainer);
+    render("weekly", weeklyContainer);
 });
+
+/* ================= RESET ================= */
 
 resetBtn.addEventListener("click", () => {
-
-    if (confirm("¿Borrar TODO?")) {
-
-        state = { general: {}, weekly: {} };
-        autoSave();
-
-        render("general", generalContainer);
-        render("weekly", weeklyContainer);
-    }
+    state = { general: {}, weekly: {}, history: [], pin: state.pin };
+    save();
+    render("general", generalContainer);
+    render("weekly", weeklyContainer);
+    renderHistory();
 });
 
-if ("serviceWorker" in navigator) {
-    window.addEventListener("load", () => {
-        navigator.serviceWorker.register("service-worker.js")
-            .then(() => console.log("Service Worker registrado"))
-            .catch(err => console.log("Error SW:", err));
+/* ================= PRIVACY ================= */
+
+privacyBtn.addEventListener("click", () => {
+    privacyMode = !privacyMode;
+    globalDisplay.style.filter = privacyMode ? "blur(8px)" : "none";
+});
+
+/* ================= PIN ================= */
+
+function initPin() {
+    if (!state.pin) {
+        lockTitle.textContent = "🔐 Crear PIN de 6 dígitos";
+        pinBtn.textContent = "Guardar PIN";
+    }
+
+    pinBtn.addEventListener("click", () => {
+        const value = pinInput.value;
+
+        if (!/^\d{6}$/.test(value)) {
+            pinError.textContent = "Debe tener 6 números.";
+            return;
+        }
+
+        if (!state.pin) {
+            state.pin = value;
+            save();
+            unlock();
+        } else if (value === state.pin) {
+            unlock();
+        } else {
+            pinError.textContent = "PIN incorrecto.";
+            pinInput.value = "";
+        }
     });
 }
+
+function unlock() {
+    lockScreen.style.display = "none";
+}
+
+/* ================= INIT ================= */
 
 load();
 render("general", generalContainer);
 render("weekly", weeklyContainer);
+renderHistory();
+initPin();
